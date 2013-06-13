@@ -1,0 +1,96 @@
+#Recommended minimum configuration per scheme:
+#auth_param negotiate program <uncomment and complete this line to activate>
+#auth_param negotiate children 5
+#auth_param negotiate keep_alive on
+#auth_param ntlm program <uncomment and complete this line to activate>
+#auth_param ntlm children 5
+#auth_param ntlm keep_alive on
+#auth_param digest program <uncomment and complete this line>
+#auth_param digest children 5
+#auth_param digest realm Squid proxy-caching web server
+#auth_param digest nonce_garbage_interval 5 minutes
+#auth_param digest nonce_max_duration 30 minutes
+#auth_param digest nonce_max_count 50
+#auth_param basic program <uncomment and complete this line>
+#auth_param basic children 5
+#auth_param basic realm Squid proxy-caching web server
+#auth_param basic credentialsttl 2 hours
+#auth_param basic casesensitive off
+#Recommended minimum configuration:
+acl all src all
+acl manager proto cache_object
+acl localhost src 127.0.0.1/32
+acl to_localhost dst 127.0.0.0/8
+#
+# Example rule allowing access from your local networks.
+# Adapt to list your (internal) IP networks from where browsing
+# should be allowed
+acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
+acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
+acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
+#
+acl SSL_ports port 443
+acl Safe_ports port 80		# http
+acl Safe_ports port 21		# ftp
+acl Safe_ports port 443		# https
+acl Safe_ports port 70		# gopher
+acl Safe_ports port 210		# wais
+acl Safe_ports port 1025-65535	# unregistered ports
+acl Safe_ports port 280		# http-mgmt
+acl Safe_ports port 488		# gss-http
+acl Safe_ports port 591		# filemaker
+acl Safe_ports port 777		# multiling http
+acl CONNECT method CONNECT
+#Recommended minimum configuration:
+#
+# Only allow cachemgr access from localhost
+http_access allow manager localhost
+http_access deny manager
+# Deny requests to unknown ports
+http_access deny !Safe_ports
+# Deny CONNECT to other than SSL ports
+http_access deny CONNECT !SSL_ports
+#
+# We strongly recommend the following be uncommented to protect innocent
+# web applications running on the proxy server who think the only
+# one who can access services on "localhost" is a local user
+#http_access deny to_localhost
+#
+# INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
+
+# Example rule allowing access from your local networks.
+# Adapt localnet in the ACL section to list your (internal) IP networks
+# from where browsing should be allowed
+http_access allow localnet
+
+# And finally deny all other access to this proxy
+http_access deny all
+#Allow ICP queries from local networks only
+icp_access allow localnet
+icp_access deny all
+#Allow HTCP queries from local networks only
+# htcp_access allow localnet
+# htcp_access deny all
+#Default setting:
+# miss_access allow all
+# Squid normally listens to port 3128
+http_port 3128
+# We used to recommend you to use at least the following line;
+# this is now done using refresh_pattern entries.
+# hierarchy_stoplist cgi-bin ?
+access_log /var/spool/squid/logs/access.log squid
+refresh_pattern ^ftp:		1440	20%	10080
+refresh_pattern ^gopher:	1440	0%	1440
+refresh_pattern -i (/cgi-bin/|\?) 0	0%	0
+refresh_pattern .		0	20%	4320
+# Don't upgrade ShoutCast responses to HTTP
+acl shoutcast rep_header X-HTTP09-First-Line ^ICY.[0-9]
+upgrade_http0.9 deny shoutcast
+# Apache mod_gzip and mod_deflate known to be broken so don't trust
+# Apache to signal ETag correctly on such responses
+acl apache rep_header Server ^Apache
+broken_vary_encoding allow apache
+#To enable announcing your cache, just uncomment the line below.
+#announce_period 1 day
+# Leave coredumps in the first cache dir
+coredump_dir /var/spool/squid/cache
