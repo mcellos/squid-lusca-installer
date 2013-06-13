@@ -174,6 +174,47 @@ function testTerminal()
 	fi
 }
 
+function downloadSource()
+{
+	cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
+	sleep 1
+	if [[ -d "~/Downloads" ]]; then
+		cd ~/Downloads
+		if [[ -d "Apps" ]]; then
+			cd Apps
+			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
+			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+			sleep 1
+		else
+			cout action "Creating 'Apps' directory in your 'Downloads' directory."
+			sleep 1
+			mkdir Apps
+			cd Apps
+			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
+			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+			sleep 1
+		fi
+	else
+		cout action "Creating 'Downloads' directory in your home directory."
+		mkdir Downloads
+		cd ~/Downloads
+		if [[ -d "Apps" ]]; then
+			cd Apps
+			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
+			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+			sleep 1
+		else
+			cout action "Creating 'Apps' directory in your 'Downloads' directory."
+			sleep 1
+			mkdir Apps
+			cd Apps
+			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
+			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+			sleep 1
+		fi
+	fi
+}
+
 #------------------------ Main Program -----------------------------#
 trap 'interrupt' INT
 checkInternetConnection
