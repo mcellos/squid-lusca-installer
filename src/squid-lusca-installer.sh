@@ -86,6 +86,8 @@ function checkDependecies()
 					sleep 1
 					cout warning "You have unresolve dependencies, you may encounter some problems later"
 					askToInstallDependecies=false
+				else
+					cout warning "Wrong input!"
 				fi
 			done
 		fi
