@@ -56,6 +56,42 @@ function checkRoot()
 	fi
 }
 
+function checkDependecies()
+{
+	cout action "Checking Dependencies..."
+	sleep 1
+	raw="squid squidclient squid-cgi gcc build-essential sharutils ccze libzip-dev automake1.9"
+	dep=$(echo $raw | tr " " "\n")
+	for dependencies in $dep; do
+		cout action "Checking $dependencies"
+		sleep 1
+		if [[ $(dpkg -l | grep $dependencies | awk {'print $1'} | head -n 1) == "ii" ]]; then
+			cout info "Found $dependencies."
+		else
+			cout warning "$dependencies not found!"
+			askToInstallDependecies=true
+			while [[ $askToInstallDependecies == "true" ]]; do
+				cout info "Do you want to install missing dependencies? (Y/n)"
+				read answerInstallDependencies
+				if [[ $answerInstallDependencies == *[Yy]* ]] || [[ $answerInstallDependencies == "" ]]; then
+					cout action "Installing $dependencies..."
+					sleep 1
+					apt-get install $dependencies --yes
+					sleep 1
+					cout info "Done..."
+					sleep 1
+					askToInstallDependecies=false
+				elif [[ $answerInstallDependencies == *[Nn]* ]]; then
+					cout info "Leave unresolve dependencies"
+					sleep 1
+					cout warning "You have unresolve dependencies, you may encounter some problems later"
+					askToInstallDependecies=false
+				fi
+			done
+		fi
+	done
+}
+
 function interrupt()
 {
 	echo -e "\n"
@@ -140,5 +176,6 @@ function testTerminal()
 trap 'interrupt' INT
 checkInternetConnection
 checkRoot
+checkDependecies
 setTerminal
 testTerminal
