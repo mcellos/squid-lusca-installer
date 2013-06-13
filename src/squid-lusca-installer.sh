@@ -22,6 +22,30 @@ cout() {
 	echo -e "$output"
 }
 
+function checkInternetConnection()
+{
+	cout action "Checking Internet Connection..."
+	sleep 1
+	command -v dig > /dev/null 2>&1
+	if [[ $? = 0 ]]; then
+		dig www.google.com +time=3 +tries=1 @8.8.8.8 > /dev/null 2>&1
+		if [[ $? -eq 0 ]]; then
+			cout info "Good, you have Internet Connection..."
+			squidURL="http://lusca-cache.googlecode.com/files/LUSCA_HEAD-r14809.tar.gz"			
+		else
+			cout error "You don't have Internet Connection!"
+			sleep 1
+			cout info "This script requiring Internet Connection!"
+			sleep 1
+			cout info "Make sure you have Internet Connection, then execute this script again"
+			sleep 1
+			cout action "Quiting..."
+			sleep 2
+			exit 1
+		fi
+	fi
+}
+
 function checkRoot()
 {
 	if [[ $(whoami) != "root" ]]; then
@@ -114,6 +138,7 @@ function testTerminal()
 
 #------------------------ Main Program -----------------------------#
 trap 'interrupt' INT
+checkInternetConnection
 checkRoot
 setTerminal
 testTerminal
