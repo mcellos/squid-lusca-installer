@@ -164,7 +164,7 @@ function testTerminal()
 {
 	cout action "Testing your terminal..."
 	sleep 1
-	cmd="whoami; sleep 3"
+	cmd="whoami; sleep 2"
 	openTerminal > /dev/null 2>&1
 	if [[ $? -eq 0 ]]; then
 		cout info "Looks good..."
@@ -178,40 +178,88 @@ function downloadSource()
 {
 	cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
 	sleep 1
-	if [[ -d "~/Downloads" ]]; then
-		cd ~/Downloads
-		if [[ -d "Apps" ]]; then
-			cd Apps
-			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
-			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+	if [[ -f ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz ]]; then
+		cout info "Source package is found. Will skip downloading source..."
+		sleep 1
+	else
+		if [[ -d ~/Downloads ]]; then
+			if [[ -d ~/Downloads/Apps ]]; then
+				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
+				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+				sleep 1
+			else
+				cout action "Creating 'Apps' directory in your 'Downloads' directory."
+				sleep 1
+				mkdir ~/Downloads/Apps
+				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
+				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+				sleep 1
+			fi
+		else
+			cout action "Creating 'Downloads' directory in your home directory."
+			mkdir ~/Downloads
+			if [[ -d ~/Downloads/Apps ]]; then
+				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
+				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+				sleep 1
+			else
+				cout action "Creating 'Apps' directory in your 'Downloads' directory."
+				sleep 1
+				mkdir ~/Downloads/Apps
+				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
+				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+				sleep 1
+			fi
+		fi
+	fi
+}
+
+function extractSource()
+{
+	cout action "Extracting package..."
+	sleep 1
+	if [[ -d ~/Downloads/Apps/LUSCA_HEAD-r14809 ]]; then
+		cout info "Source directory is found! Will skip extracting source..."
+		sleep 1
+	else
+		if [[ -f ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz ]]; then
+			cmd="cd ~/Downloads/Apps; tar -xvf LUSCA_HEAD-r14809.tar.gz; sleep 2"
+			openTerminal > /dev/null 2>&1
+			cout info "Done..."
 			sleep 1
 		else
-			cout action "Creating 'Apps' directory in your 'Downloads' directory."
+			cout warning "Source package didn't found!"
 			sleep 1
-			mkdir Apps
-			cd Apps
-			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
-			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
+			cout action "Downloading Source..."
 			sleep 1
+			downloadSource
+			extractSource
+		fi
+	fi
+}
+
+function configureSource()
+{
+	if [[ -d ~/Downloads/Apps/LUSCA_HEAD-r14809 ]]; then
+		if [[ -f  ~/Downloads/Apps/LUSCA_HEAD-r14809/Makefile ]]; then
+			if [[ $(head -n 1 ~/Downloads/Apps/LUSCA_HEAD-r14809/Makefile | awk {'print $2'}) == "red-dragon" ]]; then
+				cout info "Source already configured... Skipping..."
+			else
+				cout action "Configuring source code..."
+				sleep 1
+				cmd="cd ~/Downloads/Apps/LUSCA_HEAD-r14809; ./configure '--prefix=/usr' '--exec_prefix=/usr' '--bindir=/usr/sbin' '--sbindir=/usr/sbin' '--libexecdir=/usr/lib/squid' '--sysconfdir=/etc/squid' '--localstatedir=/var/spool/squid' '--datadir=/usr/share/squid' '--enable-async-io=24' '--with-aufs-threads=24' '--with-pthreads' '--enable-storeio=coss,aufs' '--enable-linux-netfilter' '--enable-arp-acl' '--enable-epoll' '--with-aio' '--with-dl' '--enable-snmp' '--disable-delay-pools' '--enable-htcp' '--enable-cache-digests' '--disable-unlinkd' '--enable-large-cache-files' '--with-large-files' '--enable-err-languages=English' '--enable-default-err-language=English' '--with-maxfd=65536' '--enable-removal-policies=lru' '--enable-removal-policies=heap' 'CFLAGS=-march=core2 -O2 -pipe -fomit-frame-pointer'; sed -e '1i\# red-dragon\' -i Makefile; sleep 2"
+				openTerminal > /dev/null 2>&1
+				cout info "Done..."
+			fi
+		else
+			cout action "Configuring source code..."
+			sleep 1
+			cmd="cd ~/Downloads/Apps/LUSCA_HEAD-r14809; ./configure '--prefix=/usr' '--exec_prefix=/usr' '--bindir=/usr/sbin' '--sbindir=/usr/sbin' '--libexecdir=/usr/lib/squid' '--sysconfdir=/etc/squid' '--localstatedir=/var/spool/squid' '--datadir=/usr/share/squid' '--enable-async-io=24' '--with-aufs-threads=24' '--with-pthreads' '--enable-storeio=coss,aufs' '--enable-linux-netfilter' '--enable-arp-acl' '--enable-epoll' '--with-aio' '--with-dl' '--enable-snmp' '--disable-delay-pools' '--enable-htcp' '--enable-cache-digests' '--disable-unlinkd' '--enable-large-cache-files' '--with-large-files' '--enable-err-languages=English' '--enable-default-err-language=English' '--with-maxfd=65536' '--enable-removal-policies=lru' '--enable-removal-policies=heap' 'CFLAGS=-march=core2 -O2 -pipe -fomit-frame-pointer'; sed -e '1i\# red-dragon\' -i Makefile; sleep 2"
+			openTerminal > /dev/null 2>&1
+			cout info "Done..."
 		fi
 	else
-		cout action "Creating 'Downloads' directory in your home directory."
-		mkdir Downloads
-		cd ~/Downloads
-		if [[ -d "Apps" ]]; then
-			cd Apps
-			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
-			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
-			sleep 1
-		else
-			cout action "Creating 'Apps' directory in your 'Downloads' directory."
-			sleep 1
-			mkdir Apps
-			cd Apps
-			curl $squidURL -q -o LUSCA_HEAD-r14809.tar.gz
-			cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
-			sleep 1
-		fi
+		extractSource
 	fi
 }
 
@@ -222,3 +270,6 @@ checkRoot
 checkDependecies
 setTerminal
 testTerminal
+downloadSource
+extractSource
+configureSource
