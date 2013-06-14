@@ -17,11 +17,12 @@ $ bash src/squid-lusca-installer.sh
 
 ### Contact
 ***
-If you found bug(s), please let me know by send me an email on hanggara33@gmail.com
+If you found any bug(s), please let me know by send me an email on hanggara33@gmail.com
 
-Any suggest(s) is (are) appreciated!
+Any suggest is appreciated!
 ***
 
 ### Note
 This repository is under maintenance by [omegahanggara](https://github.com/omegahanggara)
+
 Find me on twitter [omegahanggara](https://twitter.com/omegahanggara) and facebook [omega.hanggara](https://www.facebook.com/omega.hanggara)
