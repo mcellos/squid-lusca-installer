@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
 
 #------------------------ Variable -----------------------------#
+totalProcessor=$(nproc)
+squidRunning=$(netstat -lpnt | grep squid | awk {'print $6'})
+squidPort=$(netstat -lpnt | grep squid | awk {'print $4'} | awk -F ":" {'print $2'})
 
 #------------------------ Function -----------------------------#
 
-cin() {
+function header()
+{
+	echo -en "\e[01;32m############################################################\e[00m\n"
+	echo -en "\e[01;32m#              SQUID LUSCHA HEAD INSTALLER                 #\e[00m\n"
+	echo -en "\e[01;32m#                         ALPHA 1                          #\e[00m\n"
+	echo -en "\e[01;32m#                                                          #\e[00m\n"
+	echo -en "\e[01;32m#                   Brought to you by                      #\e[00m\n"
+	echo -en "\e[01;32m#\e[00m                      \e[01;31mred-dragon\e[00m                          \e[01;32m#\e[00m\n"
+	echo -en "\e[01;32m#                                                          #\e[00m\n"
+	echo -en "\e[01;32m############################################################\e[00m\n"
+}
+
+function cin() {
 	if [ "$1" == "action" ] ; then output="\e[01;32m[>]\e[00m" ; fi
 	if [ "$1" == "info" ] ; then output="\e[01;33m[i]\e[00m" ; fi
 	if [ "$1" == "warning" ] ; then output="\e[01;31m[w]\e[00m" ; fi
@@ -13,7 +28,7 @@ cin() {
 	echo -en "$output"
 }
  
-cout() {
+function cout() {
 	if [ "$1" == "action" ] ; then output="\e[01;32m[>]\e[00m" ; fi
 	if [ "$1" == "info" ] ; then output="\e[01;33m[i]\e[00m" ; fi
 	if [ "$1" == "warning" ] ; then output="\e[01;31m[w]\e[00m" ; fi
@@ -176,14 +191,14 @@ function testTerminal()
 
 function downloadSource()
 {
-	cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
-	sleep 1
 	if [[ -f ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz ]]; then
 		cout info "Source package is found. Will skip downloading source..."
 		sleep 1
 	else
 		if [[ -d ~/Downloads ]]; then
 			if [[ -d ~/Downloads/Apps ]]; then
+				cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
+				sleep 1
 				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
 				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
 				sleep 1
@@ -191,6 +206,8 @@ function downloadSource()
 				cout action "Creating 'Apps' directory in your 'Downloads' directory."
 				sleep 1
 				mkdir ~/Downloads/Apps
+				cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
+				sleep 1
 				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
 				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
 				sleep 1
@@ -199,6 +216,8 @@ function downloadSource()
 			cout action "Creating 'Downloads' directory in your home directory."
 			mkdir ~/Downloads
 			if [[ -d ~/Downloads/Apps ]]; then
+				cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
+				sleep 1
 				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
 				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
 				sleep 1
@@ -206,6 +225,8 @@ function downloadSource()
 				cout action "Creating 'Apps' directory in your 'Downloads' directory."
 				sleep 1
 				mkdir ~/Downloads/Apps
+				cout action "Downloading source, this may take several minutes. Depend on your internet connection..."
+				sleep 1
 				curl $squidURL -q -o ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz
 				cout action "Done... Your squid source can be found on ~/Downloads/Apps/LUSCA_HEAD-r14809.tar.gz"
 				sleep 1
@@ -263,13 +284,277 @@ function configureSource()
 	fi
 }
 
+function  compileSource()
+{
+	cout action "Compiling Source..."
+	sleep 1
+	cmd="cd ~/Downloads/Apps/LUSCA_HEAD-r14809; make -j $totalProcessor; sleep 2"
+	openTerminal > /dev/null 2>&1
+	cout info "Done..."
+	sleep 1
+}
+
+function installSquid()
+{
+	cout action "Installing squid..."
+	sleep 1
+	cmd="cd ~/Downloads/Apps/LUSCA_HEAD-r14809; make -j $totalProcessor install; sleep 2"
+	openTerminal > /dev/null 2>&1
+	cout info "Done..."
+	sleep 1	
+}
+
+function configureSquid()
+{
+	cout action "Configuring squid... This may take several minutes..."
+	sleep 1
+	cp -rfv config/* /etc/squid/
+	if [[ -d /squid ]]; then
+		if [[ -d /squid/cache ]]; then
+			cout info "Found directory /squid/cache"
+			sleep 1
+		else
+			cout warning "Directory /squid/cache not found! Creating..."
+			sleep 1
+			mkdir /squid/cache
+		fi
+		if [[ -d /squid/log ]]; then
+			cout info "Found directory /squid/log"
+			sleep 1
+			if [[ -f /squid/log/access.log ]]; then
+				cout info "Found /squid/log/access.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/access.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/access.log
+			fi
+			if [[ -f /squid/log/error.log ]]; then
+				cout info "Found /squid/log/error.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/error.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/error.log
+			fi
+			if [[ -f /squid/log/cache.log ]]; then
+				cout info "Found /squid/log/cache.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/cache.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/cache.log
+			fi
+		else
+			cout warning "Directory /squid/log not found! Creating..."
+			sleep 1
+			mkdir /squid/log
+			if [[ -f /squid/log/access.log ]]; then
+				cout info "Found /squid/log/access.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/access.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/access.log
+			fi
+			if [[ -f /squid/log/error.log ]]; then
+				cout info "Found /squid/log/error.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/error.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/error.log
+			fi
+			if [[ -f /squid/log/cache.log ]]; then
+				cout info "Found /squid/log/cache.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/cache.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/cache.log
+			fi
+		fi
+		chmod -R 777 /squid/
+	else
+		mkdir /squid
+		if [[ -d /squid/cache ]]; then
+			cout info "Found directory /squid/cache"
+			sleep 1
+		else
+			cout warning "Directory /squid/cache not found! Creating..."
+			sleep 1
+			mkdir /squid/cache
+		fi
+		if [[ -d /squid/log ]]; then
+			cout info "Found directory /squid/log"
+			sleep 1
+			if [[ -f /squid/log/access.log ]]; then
+				cout info "Found /squid/log/access.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/access.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/access.log
+			fi
+			if [[ -f /squid/log/error.log ]]; then
+				cout info "Found /squid/log/error.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/error.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/error.log
+			fi
+			if [[ -f /squid/log/cache.log ]]; then
+				cout info "Found /squid/log/cache.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/cache.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/cache.log
+			fi
+		else
+			cout warning "Directory /squid/log not found! Creating..."
+			sleep 1
+			mkdir /squid/log
+			if [[ -f /squid/log/access.log ]]; then
+				cout info "Found /squid/log/access.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/access.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/access.log
+			fi
+			if [[ -f /squid/log/error.log ]]; then
+				cout info "Found /squid/log/error.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/error.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/error.log
+			fi
+			if [[ -f /squid/log/cache.log ]]; then
+				cout info "Found /squid/log/cache.log"
+				sleep 1
+			else
+				cout warning "File /squid/log/cache.log not found!"
+				sleep 1
+				cout action "Creating..."
+				touch /squid/log/cache.log
+			fi
+		fi
+		chmod -R 777 /squid/
+	fi
+	askChangePort=true
+	while [[ $askChangePort == "true" ]]; do
+		cout info "Squid service, usually serve on port 3128. By default, this configuration will running squid on port 16791. Do you want to change it?"
+		echo "1. Yes"
+		echo "2. No, it's looks awesome"
+		cin info "Your answer (1/2): "
+		read answerChangePort
+		if [[ $answerChangePort -eq 1 ]]; then
+			askChangePort=false
+			askPort=true
+			while [[ $askPort == "true" ]]; do
+				cin info "Please enter your desire port: "
+				read port
+				if [[ $port == *[a-z]* ]] || [[ $port == *[A-Z]* ]]; then
+					cout warning "This is not a number!"
+					sleep 2
+				else
+					askPort=false
+					cout action "Will change squid port to $port"
+					sed 's/http_port 16791 transparent/http_port $port transparent/g' -i /etc/squid/squid.conf
+					sleep 1
+					cout info "Done..."
+					sleep 1
+				fi
+			done
+		elif [[ $answerChangePort -eq 2 ]]; then
+			askChangePort=false
+			cout action "Rock on!"
+			sleep 1
+		else
+			cout warning "This is not a valid anwser!"
+			sleep 2
+		fi
+	done
+	cout action "Parsing squid configuration..."
+	sleep 1
+	squid -k parse
+	cout action "Building squid cache. This could take several minutes. Please wait, and have a coffee!"
+	sleep 1
+	squid -z
+}
+
+function finishing()
+{
+	cout action "I'm gonna check, is squid running or not."
+	sleep 1
+	if [[ $squidRunning == "LISTEN" ]]; then
+		cout info "Squid already serving at port $squidPort"
+	else
+		cout info "Squid is not running, do you want to start it? (Y/n) "
+		read answerRunSquid
+		if [[ $answerRunSquid == *[Yy]* ]] || [[ $answerRunSquid == "" ]]; then
+			cout action "Will run squid service..."
+			sleep 1
+			/etc/init.d/squid start
+			sleep 1
+			cout info "Squid serving at port $squidPort"
+		fi
+	fi
+	cout info "All done, dude! Have a nice day :)"
+	sleep 1
+}
+
 #------------------------ Main Program -----------------------------#
 trap 'interrupt' INT
+header
+sleep 2
+clear
 checkInternetConnection
+sleep 2
+clear
 checkRoot
+sleep 2
+clear
 checkDependecies
+sleep 2
+clear
 setTerminal
+sleep 2
+clear
 testTerminal
+sleep 2
+clear
 downloadSource
+sleep 2
+clear
 extractSource
+sleep 2
+clear
 configureSource
+sleep 2
+clear
+compileSource
+sleep 2
+clear
+installSquid
+sleep 2
+clear
+configureSquid
+sleep 2
+clear
+finishing
+exit 0
