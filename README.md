@@ -1,7 +1,7 @@
-# SQUID LUSCA INSTALLER
+# SQUID LUSCA INSTALLER ALPHA 1
 
 ## Simple Bash Script to install SQUID LUSCA to your LINUX OS
-This repository is not finished yet, so it won't install SQUID LUSCA to your LINUX OS (yet)
+This is Alpha version, which mean you may encounter several bugs from this unstalbe version
 You can subscribe this repository's progress by following my twitter at [twitter](https://www.twitter.com/omegahanggara)
 I will give you some informations there as soon as there is (are) an update(s)
 
